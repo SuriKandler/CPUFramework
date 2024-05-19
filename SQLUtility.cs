@@ -10,7 +10,7 @@ namespace CPUFramework
 {
     public class SQLUtility
     {
-        public static string ConnectionString = "";
+        public static string ConnectionString = "Server=.\\SQLExpress01;Database=HeartyHearthDB;Trusted_Connection=true";
         public static DataTable GetDataTable(string sqlstatement) //- take a SQL statement and return a Datatable
         {
             DataTable dt = new();
