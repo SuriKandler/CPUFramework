@@ -37,10 +37,11 @@ namespace CPUFramework
                 try
                 {
                     SqlDataReader dr = cmd.ExecuteReader();
-                    if(loadtable == true)
+                    CheckReturnValue(cmd);
+                    if (loadtable == true)
                     {
                         dt.Load(dr);
-                    }                    
+                    }
                 }
                 catch (SqlException ex)
                 {
@@ -54,6 +55,40 @@ namespace CPUFramework
             }
             SetAllColumnsAllowNull(dt);
             return dt;
+        }
+
+        private static void CheckReturnValue(SqlCommand cmd)
+        {
+            int returnvalue = 0;
+            string msg = "";
+            if (cmd.CommandType == CommandType.StoredProcedure)
+            {
+                foreach (SqlParameter p in cmd.Parameters)
+                {
+                    if (p.Direction == ParameterDirection.ReturnValue)
+                    {
+                        if (p.Value != null)
+                        {
+                            returnvalue = (int)p.Value;
+                        }
+                    }
+                    else if (p.ParameterName.ToLower() == "@message")
+                    {
+                        if (p.Value != null)
+                        {
+                            msg = p.Value.ToString();
+                        }
+                    }
+                }
+                if (returnvalue == 1)
+                {
+                    if (msg == "")
+                    {
+                        msg = $"{cmd.CommandText} did not do action that was requested.";
+                    }
+                    throw new Exception(msg);
+                }
+            }
         }
         public static DataTable GetDataTable(string sqlstatement) //- take a SQL statement and return a Datatable
         {
@@ -76,9 +111,9 @@ namespace CPUFramework
             {
                 cmd.Parameters[paramname].Value = value;
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
-                throw new Exception(cmd.CommandText + ": " + ex.Message,ex);
+                throw new Exception(cmd.CommandText + ": " + ex.Message, ex);
             }
         }
 
@@ -87,7 +122,7 @@ namespace CPUFramework
             string origmsg = msg;
             string prefix = "ck_";
             string msgend = "";
-            if(msg.Contains(prefix) == false)
+            if (msg.Contains(prefix) == false)
             {
                 if (msg.Contains("u_"))
                 {
@@ -97,7 +132,7 @@ namespace CPUFramework
                 else if (msg.Contains("f_"))
                 {
                     prefix = "f_";
-                }                
+                }
             }
             if (msg.Contains(prefix))
             {
@@ -115,10 +150,10 @@ namespace CPUFramework
                     msg = msg.Replace("_", " ");
                     msg = msg + msgend;
 
-                    if(prefix == "f_")
+                    if (prefix == "f_")
                     {
                         var words = msg.Split(" ");
-                        if(words.Length > 1)
+                        if (words.Length > 1)
                         {
                             msg = $"Cannot delete {words[0]} because it has a related {words[1]} record.";
                         }
@@ -177,7 +212,7 @@ namespace CPUFramework
                         {
                             comma = "";
                         }
-                        sb.AppendLine($"{p.ParameterName} = {(p.Value == null ? "null" : p.Value.ToString())}{comma}");                       
+                        sb.AppendLine($"{p.ParameterName} = {(p.Value == null ? "null" : p.Value.ToString())}{comma}");
                     }
                     paramnum++;
                 }
