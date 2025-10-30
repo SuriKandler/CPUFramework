@@ -151,6 +151,12 @@ namespace CPUFramework
                 if (value == DBNull.Value) { value = null; }
                 try
                 {
+                    if (prop.PropertyType == typeof(bool) && value != null)
+                    {
+                        // Convert Int32 0/1 to bool
+                        value = Convert.ToBoolean(value);
+                    }
+
                     prop.SetValue(this, value);
                 }
                 catch (Exception ex) {
